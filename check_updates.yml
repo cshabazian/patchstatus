@@ -1,0 +1,44 @@
+---
+- name: Check patch status of servers
+  hosts: PATCHSTATUS
+  gather_facts: no
+
+
+  tasks:
+    - name: List Updates
+      ansible.builtin.script:
+        cmd: ./scripts/check_updates.sh
+      become: true
+
+    - name: Check if a reboot is needed
+      ansible.builtin.script:
+        cmd: ./scripts/check_reboot.sh
+
+    - name: Get updates file
+      ansible.builtin.fetch:
+        src: /tmp/allupdates
+        dest: /tmp/updates/{{ inventory_hostname }}/updates
+        flat: yes
+
+    - name: Get redhat-release
+      ansible.builtin.fetch:
+        src: /etc/redhat-release
+        dest: /tmp/updates/{{ inventory_hostname }}/redhat-release
+        flat: yes
+
+    - name: Get reboot status
+      ansible.builtin.fetch:
+        src: /tmp/reboot_required
+        dest: /tmp/updates/{{ inventory_hostname }}/reboot
+        flat: yes
+
+    - name: Get last checked date and time
+      ansible.builtin.fetch:
+        src: /tmp/lastchecked
+        dest: /tmp/updates/{{ inventory_hostname }}/lastchecked
+        flat: yes
+
+    - name: Delete fetched files
+      ansible.builtin.shell:
+        cmd: rm -f /tmp/allupdates /tmp/lastchecked /tmp/reboot_required
+      become: true

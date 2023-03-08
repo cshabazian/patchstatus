@@ -1,0 +1,40 @@
+Setup:
+
+1) Setup your inventory file:
+The list of servers you wish to check the status of should be listed in the PATCHSTATUS file in the inventory directory
+under the [PATCHSTATUS] section.  These servers need to be resolveable however it is listed (ip or hostname).
+
+Example:
+[PATCHSTATUS]
+server1.domain.com
+server2.domain.com
+
+
+2) Make sure ssh keys are setup:
+You need to be able to ssh to the servers using and ssh key.
+If you need help doing this, there you can use setup_ansible.sh in the scripts directory.
+
+
+3) Make sure you have sudo priveleges:
+Now you need to ensure you have sudo privileges on the target servers.  I do this by adding my userid to /etc/sudoers.d/ACCOUNT_NAME as root:
+echo "ACCOUNT_NAME  ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/ACCOUNT_NAME
+NOTE: If you don't already have sudo access, you will need to login to the server, become root (either login as or su -) and add your account
+
+Once your inventory file is populated and you can ssh, you can verify connectivity to the servers with the following:
+ansible all -i inventory -m command -a "sudo whoami"
+All of the connections should come back and say you are root
+
+4) Setup the variables for the html dashboard:
+I copy the file created by makehtml.sh to a web server that is password protected to make it easy for me to check the status daily.  In order to set this up, you need to ensure you have keyless ssh access to your web server, and set the variables in the scripts/makehtml.sh file.
+
+Example:
+WEBHOST=web.server.com
+WEBDIR=/usr/share/nginx/html/secure_directory
+WEBFILE=index.html
+
+
+5) Setup cron to run daily:
+I then setup a cron job to run this every day:
+
+Example:
+0 2 * * * /path_to/run_patch_status.sh >/dev/null 2>&1
